@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Travel Wordle ☀️✈️</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: linear-gradient(135deg, #87ceeb, #ffd580);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: #fff;
+}
+
+h1 {
+    margin-top: 20px;
+    text-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+#game {
+    margin-top: 20px;
+    display: grid;
+    grid-template-rows: repeat(6, 60px);
+    gap: 8px;
+}
+
+.row {
+    display: grid;
+    grid-template-columns: repeat(5, 60px);
+    gap: 8px;
+}
+
+.tile {
+    width: 60px;
+    height: 60px;
+    background: rgba(255,255,255,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 26px;
+    font-weight: bold;
+    text-transform: uppercase;
+    border-radius: 8px;
+    backdrop-filter: blur(4px);
+}
+
+.correct {
+    background: #4caf50 !important;
+}
+
+.present {
+    background: #f4c542 !important;
+}
+
+.absent {
+    background: rgba(0,0,0,0.3) !important;
+}
+
+#keyboard {
+    margin-top: 20px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    max-width: 500px;
+}
+
+.key {
+    margin: 3px;
+    padding: 10px 12px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 6px;
+    cursor: pointer;
+    user-select: none;
+    font-weight: bold;
+}
+
+#message {
+    margin-top: 15px;
+    font-size: 18px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>Travel Wordle ☀️✈️</h1>
+
+<div id="game"></div>
+
+<div id="keyboard"></div>
+
+<div id="message"></div>
+
+<script>
+const words = [
+    "beach", "plane", "hotel", "train", "maple",
+    "ocean", "islet", "sunny", "route", "sandy",
+    "cruise", "cabin", "paris", "lodge", "globe"
+];
+
+const answer = words[Math.floor(Math.random() * words.length)];
+let currentRow = 0;
+let currentTile = 0;
+let board = Array(6).fill("").map(() => Array(5).fill(""));
+
+const game = document.getElementById("game");
+const keyboard = document.getElementById("keyboard");
+const message = document.getElementById("message");
+
+// create board
+for (let i = 0; i < 6; i++) {
+    const row = document.createElement("div");
+    row.classList.add("row");
+    for (let j = 0; j < 5; j++) {
+        const tile = document.createElement("div");
+        tile.classList.add("tile");
+        tile.id = `tile-${i}-${j}`;
+        row.appendChild(tile);
+    }
+    game.appendChild(row);
+}
+
+// keyboard
+const keys = "QWERTYUIOPASDFGHJKLZXCVBNM".split("");
+keys.forEach(k => {
+    const key = document.createElement("div");
+    key.classList.add("key");
+    key.textContent = k;
+    key.onclick = () => handleKey(k.toLowerCase());
+    keyboard.appendChild(key);
+});
+
+const enter = document.createElement("div");
+enter.classList.add("key");
+enter.textContent = "ENTER";
+enter.onclick = checkWord;
+keyboard.appendChild(enter);
+
+const del = document.createElement("div");
+del.classList.add("key");
+del.textContent = "DEL";
+del.onclick = deleteLetter;
+keyboard.appendChild(del);
+
+// input
+document.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") checkWord();
+    else if (e.key === "Backspace") deleteLetter();
+    else if (/^[a-zA-Z]$/.test(e.key)) handleKey(e.key.toLowerCase());
+});
+
+function handleKey(letter) {
+    if (currentTile < 5 && currentRow < 6) {
+        board[currentRow][currentTile] = letter;
+        document.getElementById(`tile-${currentRow}-${currentTile}`).textContent = letter;
+        currentTile++;
+    }
+}
+
+function deleteLetter() {
+    if (currentTile > 0) {
+        currentTile--;
+        board[currentRow][currentTile] = "";
+        document.getElementById(`tile-${currentRow}-${currentTile}`).textContent = "";
+    }
+}
+
+function checkWord() {
+    if (currentTile !== 5) {
+        message.textContent = "Word must be 5 letters!";
+        return;
+    }
+
+    const guess = board[currentRow].join("");
+    const answerArr = answer.split("");
+    const guessArr = guess.split("");
+
+    let result = Array(5).fill("absent");
+
+    // correct letters
+    for (let i = 0; i < 5; i++) {
+        if (guessArr[i] === answerArr[i]) {
+            result[i] = "correct";
+            answerArr[i] = null;
+            guessArr[i] = null;
+        }
+    }
+
+    // present letters
+    for (let i = 0; i < 5; i++) {
+        if (guessArr[i] && answerArr.includes(guessArr[i])) {
+            result[i] = "present";
+            answerArr[answerArr.indexOf(guessArr[i])] = null;
+        }
+    }
+
+    // color tiles
+    for (let i = 0; i < 5; i++) {
+        const tile = document.getElementById(`tile-${currentRow}-${i}`);
+        tile.classList.add(result[i]);
+    }
+
+    if (guess === answer) {
+        message.textContent = "You Win! ✈️☀️";
+        return;
+    }
+
+    currentRow++;
+    currentTile = 0;
+
+    if (currentRow === 6) {
+        message.textContent = `Game Over! The word was "${answer}".`;
+    }
+}
+</script>
+<p>
+    Go back to home page <a href="index.html">Here</a>
+</p>
+</body>
+</html>
